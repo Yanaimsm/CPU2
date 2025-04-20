@@ -40,19 +40,16 @@ begin
 	proc2 : process(clk_i, rst_i)
 	begin
 		if rst_i = '1' then
-			control_r  <= (others => '0');
 			cnt_slow_q <= (others => '0');
 		elsif rising_edge(clk_i) then
 			if fast_done_r then
-				if control_r < upperBound_i then
-					control_r <= control_r + 1;
+				if cnt_slow_q < upperBound_i then
+					cnt_slow_q <= cnt_slow_q + 1;
 				elsif repeat_i = '1' then
-					control_r <= (others => '0');
+					cnt_slow_q <= (others => '0');
 				else
-					control_r <= control_r; -- Hold
+					cnt_slow_q <= cnt_slow_q; -- Hold
 				end if;
-
-				cnt_slow_q <= control_r;  -- Mirror (assigned previous value here, optionally delay by one cycle)
 			end if;
 		end if;
 	end process;
@@ -61,10 +58,10 @@ begin
 	--------------------- combinational part ----------------------
 	---------------------------------------------------------------
 	fast_done_r <= (cnt_fast_q = control_r);
+	control_r <= cnt_slow_q;
 	count_o <= cnt_fast_q;
-	busy_o <= '1' when control_r < upperBound_i or repeat_i = '1' else '0';
+	busy_o <= '1' when cnt_slow_q < upperBound_i or repeat_i = '1' else '0';
 
-	
 	----------------------------------------------------------------
 end arc_sys;
 
