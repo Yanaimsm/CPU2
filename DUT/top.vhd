@@ -31,12 +31,14 @@ begin
 	----------------------------------------------------------------
 	----------------------- synchronous part -----------------------
         elsif rising_edge(clk_i) then
-			if not enable_r then 
+			if enable_r then 
+				if fast_done_r and repeat_i = '1' then  -- Reset fast counter if cycle is done and enabled
+					cnt_fast_q <= (others => '0');
+				elsif cnt_fast_q < control_r then 
+					cnt_fast_q <= cnt_fast_q + 1;  -- Otherwise, increment fast counter
+				end if;
+			else
 				cnt_fast_q <= cnt_fast_q;  -- Hold fast counter value if not enabled
-            elsif fast_done_r then  -- Reset fast counter if cycle is done and enabled
-                cnt_fast_q <= (others => '0');
-            else
-                cnt_fast_q <= cnt_fast_q + 1;  -- Otherwise, increment fast counter
             end if;
         end if;
     end process;
