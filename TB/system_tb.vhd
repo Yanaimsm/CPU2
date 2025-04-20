@@ -13,6 +13,7 @@ architecture rtb of tb is
 	signal upperBound : std_logic_vector(n-1 downto 0);
 	signal count : std_logic_vector(n-1 downto 0);
 	signal busy	: std_logic;
+	
 begin
 	L0 : top generic map (n) port map(rst,clk,repeat,upperBound,count,busy);
     
@@ -24,38 +25,19 @@ begin
 		  clk <= not clk;
 		  wait for 50 ns;
         end process;
-				
-		gen_upperBound : process
-        begin
-		  upperBound <= (1=>'1',0=>'0',others => '0');
-		  for i in 0 to 1 loop
-			wait for 800 ns;
-				upperBound <= upperBound+2;
-		  end loop;
-		  
-		  for i in 0 to 0 loop
-			wait for 800 ns;
-				upperBound <= upperBound-4;
-		  end loop;
-		  
-		  for i in 0 to 2 loop
-			wait for 800 ns;
-				upperBound <= upperBound+1;
-		  end loop;
-        end process;
+		
+		upperBound <= (2 =>'1',1 =>'0',0 =>'0', others =>'0');
 		  
 		gen_rst : process
         begin
-		  rst <='1'; wait for 150 ns;
-		  rst <='0'; wait for 800 ns;
-		  rst <='1'; wait for 200 ns;
-		  rst <='0'; wait;
+		  rst <='1','0' after 100 ns;
+		  wait;
         end process;
-		
+
 		gen_repeat : process
         begin
 		  repeat <=	'1',
-					'0' after 2000 ns;
+					'0' after 2500 ns;
 		  wait;
         end process;
 		
