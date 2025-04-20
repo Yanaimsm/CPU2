@@ -24,35 +24,46 @@ begin
 	----------------------------------------------------------------
 	proc1 : process(clk_i,rst_i)
 	begin
+	----------------------- asynchronous part ----------------------
 		if rst_i = '1' then
 			cnt_fast_q <= (others => '0');
-		elsif rising_edge(clk_i) then
-			if cnt_fast_q = control_r then
-				cnt_fast_q <= (others => '0');
+	----------------------------------------------------------------
+	----------------------- synchronous part -----------------------
+	
+	elsif rising_edge(clk_i) then
+			if cnt_fast_q = control_r then  -- If the fast counter has reached the current limit set by control_r
+				cnt_fast_q <= (others => '0');  -- Reset the fast counter to zero
 			else
-				cnt_fast_q <= cnt_fast_q + 1;
+				cnt_fast_q <= cnt_fast_q + 1;  -- Otherwise, increment the fast counter
 			end if;
 		end if;
 	end process;
+	
 	----------------------------------------------------------------
 	---------------------- slow counter process --------------------
 	----------------------------------------------------------------
+	
 	proc2 : process(clk_i, rst_i)
 	begin
+	
+	----------------------- asynchronous part ----------------------
 		if rst_i = '1' then
 			cnt_slow_q <= (others => '0');
-		elsif rising_edge(clk_i) then
-			if fast_done_r then
-				if cnt_slow_q < upperBound_i then
-					cnt_slow_q <= cnt_slow_q + 1;
-				elsif repeat_i = '1' then
-					cnt_slow_q <= (others => '0');
+	----------------------------------------------------------------
+	----------------------- synchronous part -----------------------			
+		elsif rising_edge(clk_i) then  
+			if fast_done_r then  -- Only proceed if the fast counter has finished its current cycle
+				if cnt_slow_q < upperBound_i then  -- If the slow counter hasn't reached the upper bound yet
+					cnt_slow_q <= cnt_slow_q + 1;  -- Increment the slow counter
+				elsif repeat_i = '1' then  -- Else, if repeat is requested
+					cnt_slow_q <= (others => '0');  -- Reset the slow counter to zero
 				else
-					cnt_slow_q <= cnt_slow_q; -- Hold
+					cnt_slow_q <= cnt_slow_q;  -- Otherwise, hold the current value (do nothing)
 				end if;
-			end if;
-		end if;
-	end process;
+			end if;  
+		end if;  
+	end process;  
+
 
 	---------------------------------------------------------------
 	--------------------- combinational part ----------------------
@@ -60,7 +71,7 @@ begin
 	fast_done_r <= (cnt_fast_q = control_r);
 	control_r <= cnt_slow_q;
 	count_o <= cnt_fast_q;
-	busy_o <= '1' when cnt_slow_q < upperBound_i or repeat_i = '1' else '0';
+	busy_o <= '1' when (cnt_slow_q < upperBound_i or repeat_i = '1') and rst_i = '0' else '0'; -- turn off only when not repeating and finished counting
 
 	----------------------------------------------------------------
 end arc_sys;

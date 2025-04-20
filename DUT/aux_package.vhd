@@ -12,17 +12,6 @@ package aux_package is
 		  busy_o : out std_logic);
 	end component;
   
-
-
-
-
-
-
-
-
-
-
-
  
 end aux_package;
 
