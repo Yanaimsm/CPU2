@@ -15,8 +15,8 @@ architecture arc_sys of top is
 	SIGNAL cnt_fast_q : std_logic_vector(n-1 DOWNTO 0); -- synchronous register to store fast counter process output
 	SIGNAL cnt_slow_q : std_logic_vector(n-1 DOWNTO 0); -- synchronous register to store slow counter process output
 	SIGNAL control_r : std_logic_vector(n-1 DOWNTO 0); -- control register used for updating current counter bound
-	signal fast_done_r       : boolean; -- signal to show that a cycle has completed
-
+	signal fast_done_r    : boolean; -- signal to show that a cycle has completed
+	signal enable_r       : boolean; -- signal that allows count to proceed.
  
 begin
 	----------------------------------------------------------------
@@ -31,10 +31,11 @@ begin
 	----------------------- synchronous part -----------------------
 	
 	elsif rising_edge(clk_i) then
-			if cnt_fast_q = control_r then  -- If the fast counter has reached the current limit set by control_r
+			if fast_done_r and enable_r then  -- If the fast counter has reached the current limit set by control_r and process is enabled
 				cnt_fast_q <= (others => '0');  -- Reset the fast counter to zero
-			else
+			elsif enable_r then
 				cnt_fast_q <= cnt_fast_q + 1;  -- Otherwise, increment the fast counter
+			else cnt_fast_q <= cnt_fast_q; --hold final value
 			end if;
 		end if;
 	end process;
@@ -57,9 +58,11 @@ begin
 					cnt_slow_q <= cnt_slow_q + 1;  -- Increment the slow counter
 				elsif repeat_i = '1' then  -- Else, if repeat is requested
 					cnt_slow_q <= (others => '0');  -- Reset the slow counter to zero
-				else
-					cnt_slow_q <= cnt_slow_q;  -- Otherwise, hold the current value (do nothing)
+				else enable_r = 0; -- signal flag to stop fast count process when done
 				end if;
+			else
+				cnt_slow_q <= cnt_slow_q;  -- Otherwise, hold the current value (do nothing)
+				
 			end if;  
 		end if;  
 	end process;  
