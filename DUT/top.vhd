@@ -62,6 +62,7 @@ begin
                     cnt_slow_q <= cnt_slow_q + 1;
                 elsif repeat_i = '1' then  -- If repeat is requested
                     cnt_slow_q <= (others => '0');  -- Reset the slow counter to zero
+				
                 end if;
             end if;
         end if;
@@ -73,7 +74,7 @@ begin
     fast_done_r <= (cnt_fast_q = control_r);  -- Fast counter done when equal to control_r
     control_r <= cnt_slow_q;  -- Set the control register to the slow counter value
     count_o <= cnt_fast_q;  -- Output the current fast counter value
-    busy_o <= '1' when (cnt_slow_q < upperBound_i or repeat_i = '1') and rst_i = '0' else '0';  -- Busy if not finished or repeat is active
-	enable_r <= '0' when (cnt_slow_q = upperBound_i and repeat_i = '0' and fast_done_r) else '1'; -- concurrent conditioning for enable_r flag
+    busy_o <= '1' when (enable_r  = '1') else '0';  -- Busy if not finished or repeat is active
+	enable_r <= '0' when (cnt_slow_q >= upperBound_i and repeat_i = '0' and fast_done_r) else '1'; -- concurrent conditioning for enable_r flag
 	----------------------------------------------------------------
 end arc_sys;
